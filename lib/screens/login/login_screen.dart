@@ -1,5 +1,11 @@
+import 'dart:convert';
+
 import "package:flutter/material.dart";
-import 'package:gym_app/values/custom_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../shared/models/user_model.dart';
+import '../../shared/values/custom_colors.dart';
+import '../../shared/values/preferences_keys.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -8,7 +14,9 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen> { 
+  TextEditingController _emailInputController = TextEditingController();
+  TextEditingController _passwordInputController = TextEditingController();
   bool continueConnected = false;
   @override
   Widget build(BuildContext context) {
@@ -47,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     TextFormField(
+                      controller: _emailInputController,
                       autofocus: true,
                       decoration: InputDecoration(
                           labelText: "e-mail",
@@ -63,6 +72,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           )),
                     ),
                     TextFormField(
+                      controller: _passwordInputController,
+                      obscureText: true,
                       decoration: InputDecoration(
                         labelText: "senha",
                         labelStyle: TextStyle(color: Colors.white),
@@ -115,7 +126,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  _doLogin();
+                },
                 child: Text("Login"),
                 style: ElevatedButton.styleFrom(
                     primary: CustomColors().getActivePrimaryButtonColor(),
@@ -155,5 +168,27 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void _doLogin() async {
+    String mailForm = this._emailInputController.text;
+    String passwordForm = this._passwordInputController.text;
+
+    User savedUser = await _getSavedUser();
+
+    if (savedUser.email == mailForm && savedUser.password == passwordForm){
+      print("Logged");
+    }else{
+      print("Not logged");
+    }
+  }
+
+  Future<User> _getSavedUser() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? jsonUser = prefs.getString(PreferencesKeys.activeUser);
+    print(jsonUser);
+    Map<String, dynamic> mapUser = json.decode(jsonUser!);
+    User user = User.fromJson(mapUser);
+    return user;
   }
 }
